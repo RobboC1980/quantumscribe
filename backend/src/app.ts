@@ -13,10 +13,11 @@ app.use(helmet());
 app.use(cors());
 app.use(compression());
 app.use(express.json());
-app.use(morgan('tiny'));
+app.use(morgan('dev'));
 
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 
+// auth endpoints
 app.use('/api/auth', authRouter);
 app.use('/api/projects', projectsRouter);
 
