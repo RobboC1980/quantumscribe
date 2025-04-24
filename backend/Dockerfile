@@ -1,11 +1,32 @@
-FROM node:20-alpine AS builder
+FROM node:20.13.1-alpine3.19 AS builder
+# Set base workdir
 WORKDIR /app
-COPY . .
-RUN npm install && npm run build
 
-FROM node:20-alpine
+# Copy only package files first for cache efficiency
+COPY package*.json ./backend/
+
+# No need to copy root tsconfig.json anymore since backend/tsconfig.json is standalone
+
+# Change to backend dir and install dependencies
+WORKDIR /app/backend
+RUN npm install
+
+# Copy the rest of the backend source code
+# Note: We are already in /app/backend, so source is copied relative to here
+COPY . ./
+
+# Build the project (tsc -p tsconfig.json uses ./tsconfig.json which extends ../tsconfig.json)
+RUN npm run build
+
+# production image
+FROM node:20.13.1-alpine3.19
 WORKDIR /app
-COPY --from=builder /app/dist ./dist
-COPY package*.json ./
+ENV NODE_ENV=production
+
+# Copy built artifacts and necessary files from builder stage
+COPY --from=builder /app/backend/dist ./dist
+COPY --from=builder /app/backend/package*.json ./
+# We don't need tsconfig in production
+
 RUN npm install --omit=dev
 CMD ["node", "dist/app.js"]

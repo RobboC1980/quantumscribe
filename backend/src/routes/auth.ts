@@ -1,20 +1,26 @@
 import { Router } from 'express';
-import jwt from 'jsonwebtoken';
+import { login, register } from '../services/auth.service';
 
 const router = Router();
 
-router.post('/login', (req, res) => {
-  // placeholder: validate user
-  const token = jwt.sign({ userId: 1 }, process.env.JWT_SECRET || 'secret', { expiresIn: '1h' });
-  return res.json({ token });
+router.post('/register', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const token = await register(email, password);
+    res.json({ token });
+  } catch (e: any) {
+    res.status(400).json({ error: e.message });
+  }
 });
 
-router.post('/register', (_req, res) => {
-  return res.status(201).json({ message: 'User registered (stub)' });
-});
-
-router.get('/me', (_req, res) => {
-  return res.json({ id: 1, email: 'demo@example.com' });
+router.post('/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const token = await login(email, password);
+    res.json({ token });
+  } catch (e: any) {
+    res.status(400).json({ error: e.message });
+  }
 });
 
 export default router;
