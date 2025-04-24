@@ -1,0 +1,16 @@
+{
+  "name": "quantumscribe",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": ["backend", "frontend"],
+  "scripts": {
+    "bootstrap": "npm install && npm run build --workspaces",
+    "start": "npm run dev --workspaces",
+    "lint": "npm run lint --workspaces",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "eslint": "^8.40.0",
+    "prettier": "^3.0.0"
+  }
+}
