@@ -1,0 +1,18 @@
+[auth]
+site_url = "https://quantumscribe.vercel.app"
+additional_redirect_urls = ["https://localhost:3000"]
+autoconfirm = false
+disable_signup = false
+
+[auth.email]
+enable_signup = true
+enable_confirmations = true
+
+[functions]
+file_size_limit = "2MB"
+
+[api]
+enabled_schemas = ["public", "auth"]
+
+[postgres]
+schema_migrations_table = "schema_migrations" 

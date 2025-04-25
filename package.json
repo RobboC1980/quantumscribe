@@ -13,7 +13,7 @@
     "start": "pnpm --parallel run start",
     "lint": "pnpm --recursive run lint",
     "format": "pnpm --recursive run format",
-    "build": "pnpm install && pnpx prisma generate --schema=backend/prisma/schema.prisma && pnpm --parallel run build",
+    "build": "supabase db push && pnpm --parallel run build",
     "prisma:generate": "pnpx prisma generate --schema=backend/prisma/schema.prisma"
   },
   "devDependencies": {
