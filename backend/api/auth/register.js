@@ -1,36 +1,23 @@
-// Serverless function handler for registration
+// Serverless function for user registration
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient();
+// Initialize Prisma with connection pooling for serverless
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: process.env.DATABASE_URL
+    }
+  }
+});
+
 const SALT_ROUNDS = 10;
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-key';
 
 // Helper function to sign JWT tokens
 function sign(userId) {
   return jwt.sign({ sub: userId }, JWT_SECRET, { expiresIn: '7d' });
-}
-
-// Helper function to register users
-async function registerUser(email, password) {
-  // Check if user already exists
-  const existingUser = await prisma.user.findUnique({ where: { email } });
-  if (existingUser) {
-    throw new Error('User with this email already exists');
-  }
-
-  const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
-  
-  // Create user - note: passwordHash maps to password_hash in database via Prisma schema
-  const user = await prisma.user.create({ 
-    data: { 
-      email, 
-      password: hashedPassword // This matches TypeScript expectations
-    } 
-  });
-  
-  return sign(user.id);
 }
 
 export default async function handler(req, res) {
@@ -51,32 +38,64 @@ export default async function handler(req, res) {
   }
 
   try {
+    console.log('Register endpoint called with method:', req.method);
     const { email, password } = req.body;
     
     // Basic validation
     if (!email || !password) {
+      console.log('Missing email or password');
       return res.status(400).json({ 
         error: 'Email and password are required' 
       });
     }
     
     if (password.length < 6) {
+      console.log('Password too short');
       return res.status(400).json({ 
         error: 'Password must be at least 6 characters long' 
       });
     }
     
-    // Attempt to register the user
-    const token = await registerUser(email, password);
+    // Check if user already exists
+    console.log('Checking if user exists:', email);
+    const existingUser = await prisma.user.findUnique({ 
+      where: { email } 
+    });
+    
+    if (existingUser) {
+      console.log('User already exists');
+      return res.status(409).json({ 
+        error: 'User with this email already exists' 
+      });
+    }
+
+    // Hash password
+    console.log('Hashing password');
+    const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+    
+    // Create user with correct field name (passwordHash)
+    console.log('Creating user');
+    const user = await prisma.user.create({ 
+      data: { 
+        email, 
+        passwordHash: hashedPassword // This is the field name in our Prisma schema
+      } 
+    });
+    
+    // Generate token
+    console.log('Generating token');
+    const token = sign(user.id);
+    
+    console.log('Registration successful');
     res.status(201).json({ token });
   } catch (e) {
-    console.error('Registration error:', e.message);
+    console.error('Registration error:', e);
     
-    // Handle specific errors
-    if (e.message.includes('already exists')) {
-      return res.status(409).json({ error: e.message });
-    }
-    
-    res.status(400).json({ error: e.message });
+    res.status(500).json({ 
+      error: 'Registration failed. Please try again later.' 
+    });
+  } finally {
+    // Clean up Prisma connection
+    await prisma.$disconnect();
   }
 } 
