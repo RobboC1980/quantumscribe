@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { requireAuth } from '../middleware/auth.middleware';
-import * as epic from '../services/epic.service';
-import * as story from '../services/story.service';
+import { requireAuth } from '@middleware/auth.middleware.js';
+import * as epic from '@services/epic.service.js';
+import * as story from '@services/story.service.js';
 const r = Router();
 r.use(requireAuth);
 // GET /api/projects/:projectId/epics

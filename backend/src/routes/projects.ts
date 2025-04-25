@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { requireAuth } from '../middleware/auth.middleware';
-import * as svc from '../services/project.service';
+import { requireAuth } from '@middleware/auth.middleware.js';
+import * as svc from '@services/project.service.js';
 
 const r = Router();
 r.use(requireAuth);

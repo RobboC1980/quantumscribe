@@ -1,26 +1,44 @@
 import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
-export function list(ownerId) {
-    return prisma.project.findMany({ where: { ownerId } });
+// Fetch projects for a user
+export function list(userId) {
+    return prisma.project.findMany({
+        where: { ownerId: userId },
+        orderBy: { createdAt: 'desc' }
+    });
 }
-export function create(ownerId, data) {
-    return prisma.project.create({ data: { ...data, ownerId } });
+// Create a project (assign same value to ownerId and userId for backward-compatibility)
+export function create(userId, data) {
+    return prisma.project.create({
+        data: {
+            ...data,
+            ownerId: userId,
+            userId
+        }
+    });
 }
-export function update(id, ownerId, data) {
-    return prisma.project.update({ where: { id, ownerId }, data });
+// Update a project (ensure user is owner)
+export function update(id, userId, data) {
+    return prisma.project.update({
+        where: { id, ownerId: userId },
+        data
+    });
 }
-export function remove(id, ownerId) {
-    return prisma.project.delete({ where: { id, ownerId } });
+// Delete a project
+export function remove(id, userId) {
+    return prisma.project.delete({
+        where: { id, ownerId: userId }
+    });
 }
 export async function getUserProjects(userId) {
     return prisma.project.findMany({
-        where: { userId },
+        where: { ownerId: userId },
         orderBy: { createdAt: 'desc' }
     });
 }
 export async function getProjectById(id, userId) {
     return prisma.project.findFirst({
-        where: { id, userId },
+        where: { id, ownerId: userId },
         include: {
             epics: {
                 include: {
@@ -38,18 +56,19 @@ export async function createProject(name, description, userId) {
         data: {
             name,
             description,
+            ownerId: userId,
             userId
         }
     });
 }
 export async function updateProject(id, data, userId) {
     return prisma.project.update({
-        where: { id, userId },
+        where: { id, ownerId: userId },
         data
     });
 }
 export async function deleteProject(id, userId) {
     return prisma.project.delete({
-        where: { id, userId }
+        where: { id, ownerId: userId }
     });
 }

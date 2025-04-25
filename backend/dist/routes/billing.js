@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import bodyParser from 'body-parser';
-import { requireAuth } from '../middleware/auth.middleware.js';
-import * as bill from '../services/billing.service.js';
+import { requireAuth } from '@middleware/auth.middleware.js';
+import * as bill from '@services/billing.service.js';
 const r = Router();
 // protected endpoints
 r.post('/checkout', requireAuth, async (req, res) => {

@@ -10,7 +10,12 @@
     "strict": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": "./src",
+    "paths": {
+      "@middleware/*": ["middleware/*"],
+      "@services/*": ["services/*"]
+    }
   },
   "include": ["src"]
 }
