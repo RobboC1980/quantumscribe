@@ -2,7 +2,10 @@
   "name": "quantumscribe",
   "private": true,
   "version": "0.1.0",
-  "workspaces": ["backend", "frontend"],
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
   "scripts": {
     "bootstrap": "npm install && npm run build --workspaces",
     "start": "npm run dev --workspaces",
@@ -10,7 +13,12 @@
     "format": "prettier --write ."
   },
   "devDependencies": {
+    "@types/compression": "^1.7.5",
+    "@types/cors": "^2.8.17",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/morgan": "^1.9.9",
     "eslint": "^8.40.0",
     "prettier": "^3.0.0"
-  }
+  },
+  "packageManager": "pnpm@8.15.1"
 }

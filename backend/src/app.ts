@@ -1,7 +1,9 @@
 import express from 'express';
-import helmet from 'helmet';
 import cors from 'cors';
 import compression from 'compression';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import pinoHttp from 'pino-http';
 import morgan from 'morgan';
 import { initDatabase } from './config/db.js';
 
@@ -12,12 +14,15 @@ import billingRouter from './routes/billing.js';
 import aiRouter from './routes/ai.js';
 
 const app = express();
-
-app.use(helmet());
 app.use(cors());
+app.use(helmet());
 app.use(compression());
-app.use(express.json());
-app.use(morgan('dev'));
+app.use(
+  rateLimit({ windowMs: 1_000, max: 30, standardHeaders: true, legacyHeaders: false })
+);
+app.use(pinoHttp());
+if (process.env.NODE_ENV !== 'test') app.use(morgan('dev'));
+app.use(express.json({ limit: '10kb' }));
 
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 
@@ -41,3 +46,5 @@ initDatabase()
     console.error('Failed to initialize database:', err);
     process.exit(1);
   });
+
+export default app;
