@@ -1,42 +1,10 @@
 import OpenAI from 'openai';
 import { ChatCompletionMessageParam } from 'openai/resources';
-
-// Mock Qwen client since the package doesn't exist
-interface QwenResponse {
-  choices: Array<{
-    delta?: {
-      content?: string;
-    };
-  }>;
-}
-
-class QwenClient {
-  constructor(options: { apiKey: string | undefined }) {}
-  
-  chat = {
-    completions: {
-      create: async ({ model, stream, messages }: any) => {
-        // Mock implementation that returns a simple async iterator
-        const mockResponses = [
-          "I'm", " a", " mock", " Qwen", " response", " because", " the", " actual", " SDK", " is", " not", " available."
-        ];
-        
-        // Return an async generator that yields chunks
-        return {
-          async *[Symbol.asyncIterator]() {
-            for (const text of mockResponses) {
-              yield { choices: [{ delta: { content: text } }] } as QwenResponse;
-              await new Promise(resolve => setTimeout(resolve, 100)); // Delay to simulate streaming
-            }
-          }
-        };
-      }
-    }
-  };
-}
+import fetch from 'node-fetch';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_KEY });
-const qwen = new QwenClient({ apiKey: process.env.QWEN_KEY });
+const DASHSCOPE_API_KEY = process.env.DASHSCOPE_API_KEY;
+const DASHSCOPE_API_URL = 'https://dashscope-intl.aliyuncs.com/api/v1/services/aigc/text-generation/generation';
 
 export async function* stream(provider: 'openai' | 'qwen', messages: ChatCompletionMessageParam[]) {
   if (provider === 'openai') {
@@ -47,11 +15,66 @@ export async function* stream(provider: 'openai' | 'qwen', messages: ChatComplet
     });
     for await (const chunk of res) yield chunk.choices[0].delta?.content ?? '';
   } else {
-    const res = await qwen.chat.completions.create({
-      model: 'qwen-long',
-      stream: true,
-      messages
-    });
-    for await (const chunk of res) yield chunk.choices[0].delta?.content ?? '';
+    // Stream from DashScope API (Qwen)
+    try {
+      const response = await fetch(DASHSCOPE_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${DASHSCOPE_API_KEY}`,
+          'X-DashScope-SSE': 'enable' // Enable server-sent events
+        },
+        body: JSON.stringify({
+          model: 'qwen-plus',
+          input: {
+            messages: messages.map(msg => ({
+              role: msg.role,
+              content: msg.content
+            }))
+          },
+          parameters: {
+            result_format: 'message'
+          }
+        })
+      });
+
+      if (!response.ok) {
+        const errorData: any = await response.json();
+        throw new Error(`DashScope API error: ${errorData.message || response.statusText}`);
+      }
+
+      // Process the response stream
+      if (!response.body) throw new Error('Response body is null');
+      
+      const reader = response.body;
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      for await (const chunk of reader) {
+        // Use decoder.decode with a Uint8Array
+        buffer += decoder.decode(new Uint8Array(chunk as Buffer), { stream: true });
+        
+        // Process complete SSE messages
+        const lines = buffer.split('\n\n');
+        buffer = lines.pop() || '';
+        
+        for (const line of lines) {
+          if (line.startsWith('data:')) {
+            try {
+              const data = JSON.parse(line.slice(5));
+              if (data.output?.choices?.[0]?.message?.content) {
+                yield data.output.choices[0].message.content;
+              }
+            } catch (e) {
+              console.error('Error parsing SSE data:', e);
+            }
+          }
+        }
+      }
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error('Error streaming from DashScope:', error);
+      yield `Error: ${errorMessage}`;
+    }
   }
 } 
