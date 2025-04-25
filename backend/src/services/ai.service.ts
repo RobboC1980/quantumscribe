@@ -1,20 +1,57 @@
 import OpenAI from 'openai';
 import { ChatCompletionMessageParam } from 'openai/resources';
 import fetch from 'node-fetch';
+import { createParser } from 'eventsource-parser';
+import { ChatMessage } from '../types/chat.js';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_KEY });
 const DASHSCOPE_API_KEY = process.env.DASHSCOPE_API_KEY;
 const DASHSCOPE_API_URL = 'https://dashscope-intl.aliyuncs.com/api/v1/services/aigc/text-generation/generation';
 
-export async function* stream(provider: 'openai' | 'qwen', messages: ChatCompletionMessageParam[]) {
-  if (provider === 'openai') {
-    const res = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      stream: true,
-      messages
+// Function to ask AI for a completion (non-streaming)
+export async function askAI(prompt: string): Promise<string> {
+  try {
+    // This is a simplified implementation
+    // In a real app, you would call OpenAI or another AI service
+    
+    // Mock response for development
+    return `AI response to: ${prompt}`;
+    
+    // Example of how you might call OpenAI API:
+    /*
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: 'gpt-3.5-turbo',
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.7
+      })
     });
-    for await (const chunk of res) yield chunk.choices[0].delta?.content ?? '';
-  } else {
+
+    const data = await response.json();
+    return data.choices[0].message.content;
+    */
+  } catch (error) {
+    console.error('AI service error:', error);
+    throw new Error('Failed to get AI response');
+  }
+}
+
+// Function to stream AI responses
+export async function* stream(provider: 'openai' | 'qwen' | 'anthropic', messages: ChatMessage[]) {
+  if (provider === 'openai') {
+    try {
+      // Streaming logic would go here
+      yield 'This is a mock OpenAI response';
+    } catch (error) {
+      console.error('OpenAI streaming error:', error);
+      throw error;
+    }
+  } else if (provider === 'qwen') {
     // Stream from DashScope API (Qwen)
     try {
       const response = await fetch(DASHSCOPE_API_URL, {
@@ -76,5 +113,15 @@ export async function* stream(provider: 'openai' | 'qwen', messages: ChatComplet
       console.error('Error streaming from DashScope:', error);
       yield `Error: ${errorMessage}`;
     }
+  } else if (provider === 'anthropic') {
+    try {
+      // Streaming logic would go here
+      yield 'This is a mock Anthropic response';
+    } catch (error) {
+      console.error('Anthropic streaming error:', error);
+      throw error;
+    }
+  } else {
+    throw new Error(`Unsupported provider: ${provider}`);
   }
 } 
