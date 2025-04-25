@@ -3,9 +3,11 @@ import cors from 'cors';
 import compression from 'compression';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
-import pinoHttp from 'pino-http';
 import morgan from 'morgan';
-import { initDatabase } from './config/db.js';
+import { PrismaClient } from '@prisma/client';
+
+// Initialize Prisma client
+const prisma = new PrismaClient();
 
 import authRouter from './routes/auth.js';
 import projectsRouter from './routes/projects.js';
@@ -20,7 +22,6 @@ app.use(compression());
 app.use(
   rateLimit({ windowMs: 1_000, max: 30, standardHeaders: true, legacyHeaders: false })
 );
-app.use(pinoHttp());
 if (process.env.NODE_ENV !== 'test') app.use(morgan('dev'));
 app.use(express.json({ limit: '10kb' }));
 
@@ -38,6 +39,17 @@ app.use((_req, res) => res.status(404).json({ error: 'Not Found' }));
 const port = process.env.PORT || 4000;
 
 // Initialize the database before starting the server
+const initDatabase = async () => {
+  try {
+    await prisma.$connect();
+    console.log('Connected to database');
+    return true;
+  } catch (error) {
+    console.error('Failed to connect to database:', error);
+    return false;
+  }
+};
+
 initDatabase()
   .then(() => {
     app.listen(port, () => console.log(`🚀 Backend ready on :${port}`));

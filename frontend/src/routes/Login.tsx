@@ -1,3 +1,171 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Form, Input, Button, Card, Tabs, message } from 'antd';
+import { post } from '../lib/api';
+
 export default function Login() {
-  return <h1>Login Page (stub)</h1>;
+  const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('login');
+  const navigate = useNavigate();
+
+  async function handleLogin(values: { email: string; password: string }) {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(values)
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Login failed');
+      }
+      
+      localStorage.setItem('token', data.token);
+      message.success('Login successful!');
+      navigate('/dashboard');
+    } catch (error: any) {
+      message.error(error.message || 'Login failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleRegister(values: { email: string; password: string }) {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(values)
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Registration failed');
+      }
+      
+      localStorage.setItem('token', data.token);
+      message.success('Registration successful!');
+      navigate('/dashboard');
+    } catch (error: any) {
+      message.error(error.message || 'Registration failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const items = [
+    {
+      key: 'login',
+      label: 'Login',
+      children: (
+        <Form layout="vertical" onFinish={handleLogin}>
+          <Form.Item
+            label="Email"
+            name="email"
+            rules={[
+              { required: true, message: 'Please enter your email' },
+              { type: 'email', message: 'Please enter a valid email' }
+            ]}
+          >
+            <Input placeholder="Enter your email" />
+          </Form.Item>
+
+          <Form.Item
+            label="Password"
+            name="password"
+            rules={[{ required: true, message: 'Please enter your password' }]}
+          >
+            <Input.Password placeholder="Enter your password" />
+          </Form.Item>
+
+          <Form.Item>
+            <Button type="primary" htmlType="submit" loading={loading} block>
+              Login
+            </Button>
+          </Form.Item>
+        </Form>
+      )
+    },
+    {
+      key: 'register',
+      label: 'Register',
+      children: (
+        <Form layout="vertical" onFinish={handleRegister}>
+          <Form.Item
+            label="Email"
+            name="email"
+            rules={[
+              { required: true, message: 'Please enter your email' },
+              { type: 'email', message: 'Please enter a valid email' }
+            ]}
+          >
+            <Input placeholder="Enter your email" />
+          </Form.Item>
+
+          <Form.Item
+            label="Password"
+            name="password"
+            rules={[
+              { required: true, message: 'Please enter your password' },
+              { min: 8, message: 'Password must be at least 8 characters' }
+            ]}
+          >
+            <Input.Password placeholder="Create a password" />
+          </Form.Item>
+
+          <Form.Item
+            name="confirmPassword"
+            label="Confirm Password"
+            dependencies={['password']}
+            rules={[
+              { required: true, message: 'Please confirm your password' },
+              ({ getFieldValue }) => ({
+                validator(_, value) {
+                  if (!value || getFieldValue('password') === value) {
+                    return Promise.resolve();
+                  }
+                  return Promise.reject(new Error('Passwords do not match'));
+                }
+              })
+            ]}
+          >
+            <Input.Password placeholder="Confirm your password" />
+          </Form.Item>
+
+          <Form.Item>
+            <Button type="primary" htmlType="submit" loading={loading} block>
+              Register
+            </Button>
+          </Form.Item>
+        </Form>
+      )
+    }
+  ];
+
+  return (
+    <div style={{ 
+      display: 'flex', 
+      justifyContent: 'center', 
+      alignItems: 'center', 
+      minHeight: '100vh',
+      background: '#f0f2f5'
+    }}>
+      <Card 
+        title={<h1 style={{ textAlign: 'center' }}>QuantumScribe</h1>}
+        style={{ width: 400, boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
+      >
+        <Tabs 
+          activeKey={activeTab} 
+          onChange={setActiveTab} 
+          centered
+          items={items}
+        />
+      </Card>
+    </div>
+  );
 }

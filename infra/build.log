@@ -1,0 +1,82 @@
+time="2025-04-24T22:55:03+01:00" level=warning msg="/Users/chrisrobertson/Downloads/quantumscribe-scaffold/infra/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+Compose can now delegate builds to bake for better performance.
+ To do so, set COMPOSE_BAKE=true.
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [backend internal] load build definition from Dockerfile
+#1 transferring dockerfile: 1.05kB done
+#1 DONE 0.0s
+
+#2 [backend internal] load metadata for docker.io/library/node:20-alpine
+#2 DONE 0.7s
+
+#3 [backend internal] load .dockerignore
+#3 transferring context: 2B done
+#3 DONE 0.0s
+
+#4 [backend builder 1/9] FROM docker.io/library/node:20-alpine@sha256:c628bdc7ebc7f95b1b23249a445eb415ce68ae9def8b68364b35ee15e3065b0f
+#4 resolve docker.io/library/node:20-alpine@sha256:c628bdc7ebc7f95b1b23249a445eb415ce68ae9def8b68364b35ee15e3065b0f 0.0s done
+#4 DONE 0.0s
+
+#5 [backend builder 2/9] WORKDIR /app
+#5 CACHED
+
+#6 [backend internal] load build context
+#6 transferring context: 724B done
+#6 DONE 0.0s
+
+#7 [backend builder 3/9] COPY package*.json ./backend/
+#7 DONE 0.0s
+
+#8 [backend builder 4/9] COPY ../tsconfig.json ./tsconfig.json
+#8 DONE 0.0s
+
+#9 [backend builder 5/9] RUN ls -la /app
+#9 0.233 total 16
+#9 0.233 drwxr-xr-x    1 root     root          4096 Apr 24 21:55 .
+#9 0.233 drwxr-xr-x    1 root     root          4096 Apr 24 21:55 ..
+#9 0.233 drwxr-xr-x    2 root     root          4096 Apr 24 21:55 backend
+#9 0.233 -rw-r--r--    1 root     root           181 Apr 24 21:23 tsconfig.json
+#9 DONE 0.2s
+
+#10 [backend builder 6/9] WORKDIR /app/backend
+#10 DONE 0.0s
+
+#11 [backend builder 7/9] RUN npm install
+#11 11.01 npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+#11 11.08 npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+#11 11.29 npm warn deprecated rimraf@2.7.1: Rimraf versions prior to v4 are no longer supported
+#11 11.55 npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+#11 16.49 
+#11 16.49 added 217 packages, and audited 218 packages in 16s
+#11 16.49 
+#11 16.49 25 packages are looking for funding
+#11 16.49   run `npm fund` for details
+#11 16.49 
+#11 16.49 found 0 vulnerabilities
+#11 16.49 npm notice
+#11 16.49 npm notice New major version of npm available! 10.8.2 -> 11.3.0
+#11 16.49 npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.3.0
+#11 16.49 npm notice To update run: npm install -g npm@11.3.0
+#11 16.49 npm notice
+#11 DONE 16.6s
+
+#12 [backend builder 8/9] COPY . ./
+#12 DONE 0.1s
+
+#13 [backend builder 9/9] RUN npm run build
+#13 0.205 
+#13 0.205 > quantumscribe-backend@0.1.0 build
+#13 0.205 > tsc -p tsconfig.json
+#13 0.205 
+#13 2.653 error TS5083: Cannot read file '/tsconfig.json'.
+#13 ERROR: process "/bin/sh -c npm run build" did not complete successfully: exit code: 2
+------
+ > [backend builder 9/9] RUN npm run build:
+0.205 
+0.205 > quantumscribe-backend@0.1.0 build
+0.205 > tsc -p tsconfig.json
+0.205 
+2.653 error TS5083: Cannot read file '/tsconfig.json'.
+------
+failed to solve: process "/bin/sh -c npm run build" did not complete successfully: exit code: 2

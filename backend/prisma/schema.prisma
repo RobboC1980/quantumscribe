@@ -1,10 +1,12 @@
 datasource db {
   provider = "postgresql"
-  url      = env("SUPABASE_DB_URL")
+  url      = env("DATABASE_URL")
+  schemas  = ["public", "auth"]
 }
 
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
 }
 
 model User {
@@ -15,6 +17,10 @@ model User {
   updatedAt DateTime @updatedAt
 
   projects  Project[]
+  epics     Epic[]
+  
+  @@map("users")
+  @@schema("auth")
 }
 
 model Project {
@@ -22,33 +28,51 @@ model Project {
   name        String
   description String?
   ownerId     String
+  userId      String
   owner       User     @relation(fields: [ownerId], references: [id])
   epics       Epic[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@map("projects")
+  @@schema("public")
 }
 
 model Epic {
-  id        String   @id @default(uuid())
+  id        String     @id @default(uuid())
   title     String
   status    EpicStatus @default(PLANNED)
+  order     Int        @default(0)
   projectId String
-  project   Project  @relation(fields: [projectId], references: [id])
+  userId    String
+  project   Project    @relation(fields: [projectId], references: [id])
+  user      User       @relation(fields: [userId], references: [id])
   stories   Story[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@map("epics")
+  @@schema("public")
 }
 
 enum EpicStatus {
   PLANNED
   ACTIVE
   DONE
+
+  @@schema("public")
 }
 
 model Story {
-  id       String   @id @default(uuid())
-  title    String
-  epicId   String
-  epic     Epic     @relation(fields: [epicId], references: [id])
-  position Int
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  position    Int
+  epicId      String
+  epic        Epic     @relation(fields: [epicId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("stories")
+  @@schema("public")
 } 

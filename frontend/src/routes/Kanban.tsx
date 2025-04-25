@@ -14,7 +14,6 @@ import {
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
 import { post } from '../lib/api';
-import { withQuery } from '../lib/query';
 
 interface Epic { id: string; title: string; status: string; stories: Story[] }
 interface Story { id: string; title: string; position: number }
@@ -46,13 +45,13 @@ function Kanban() {
     // derive new position
     const [eidFrom, sid] = (active.id as string).split('|');
     const [eidTo] = (over.id as string).split('|');
-    const epicFrom = epics.find(e => e.id === eidFrom)!;
-    const epicTo = epics.find(e => e.id === eidTo)!;
+    const epicFrom = epics.find((e: Epic) => e.id === eidFrom)!;
+    const epicTo = epics.find((e: Epic) => e.id === eidTo)!;
 
-    const oldIdx = epicFrom.stories.findIndex(s => s.id === sid);
+    const oldIdx = epicFrom.stories.findIndex((s: Story) => s.id === sid);
     const newIdx =
       epicTo.id === eidFrom
-        ? epicTo.stories.findIndex(s => s.id === (over.id as string).split('|')[1])
+        ? epicTo.stories.findIndex((s: Story) => s.id === (over.id as string).split('|')[1])
         : epicTo.stories.length;
 
     reorder.mutate({ id: sid, pos: newIdx, epicId: epicTo.id });
@@ -61,10 +60,10 @@ function Kanban() {
   return (
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
       <div style={{ display: 'flex', gap: 24, overflowX: 'auto' }}>
-        {epics.map(epic => (
+        {epics.map((epic: Epic) => (
           <SortableContext
             key={epic.id}
-            items={epic.stories.map(s => `${epic.id}|${s.id}`)}
+            items={epic.stories.map((s: Story) => `${epic.id}|${s.id}`)}
             strategy={verticalListSortingStrategy}
           >
             <Column epic={epic} />
@@ -79,7 +78,7 @@ function Column({ epic }: { epic: Epic }) {
   return (
     <div style={{ minWidth: 250, border: '1px solid #ddd', padding: 8 }}>
       <h3>{epic.title}</h3>
-      {epic.stories.map(s => (
+      {epic.stories.map((s: Story) => (
         <div key={s.id} id={`${epic.id}|${s.id}`} style={{ border: '1px solid #999', margin: 4, padding: 4 }}>
           {s.title}
         </div>
@@ -92,4 +91,4 @@ function hdr() {
   return { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } };
 }
 
-export default withQuery(<Kanban />); 
+export default Kanban; 
