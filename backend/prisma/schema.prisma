@@ -75,4 +75,4 @@ model Story {
 
   @@map("stories")
   @@schema("public")
-} ß
+}
