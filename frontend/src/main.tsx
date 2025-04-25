@@ -7,6 +7,7 @@ import Dashboard from './routes/Dashboard';
 import Login from './routes/Login';
 import Projects from './routes/Projects';
 import Kanban from './routes/Kanban';
+import Billing from './routes/Billing';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
@@ -16,6 +17,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/projects" element={<Projects />} />
         <Route path="/projects/:projectId/board" element={<Kanban />} />
+        <Route path="/billing" element={<Billing />} />
         <Route path="/*" element={<Dashboard />} />
       </Routes>
     </BrowserRouter>
