@@ -8,6 +8,7 @@ import { initDatabase } from './config/db.js';
 import authRouter from './routes/auth.js';
 import projectsRouter from './routes/projects.js';
 import epicRouter from './routes/epics.js';
+import billingRouter from './routes/billing.js';
 
 const app = express();
 
@@ -23,6 +24,7 @@ app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 app.use('/api/auth', authRouter);
 app.use('/api/projects', projectsRouter);
 app.use('/api', epicRouter);
+app.use('/api/billing', billingRouter);
 
 app.use((_req, res) => res.status(404).json({ error: 'Not Found' }));
 
