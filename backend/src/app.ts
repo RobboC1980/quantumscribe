@@ -7,6 +7,7 @@ import { initDatabase } from './config/db.js';
 
 import authRouter from './routes/auth.js';
 import projectsRouter from './routes/projects.js';
+import epicRouter from './routes/epics.js';
 
 const app = express();
 
@@ -21,6 +22,7 @@ app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 // auth endpoints
 app.use('/api/auth', authRouter);
 app.use('/api/projects', projectsRouter);
+app.use('/api', epicRouter);
 
 app.use((_req, res) => res.status(404).json({ error: 'Not Found' }));
 

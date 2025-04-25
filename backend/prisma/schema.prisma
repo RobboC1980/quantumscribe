@@ -23,6 +23,32 @@ model Project {
   description String?
   ownerId     String
   owner       User     @relation(fields: [ownerId], references: [id])
+  epics       Epic[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model Epic {
+  id        String   @id @default(uuid())
+  title     String
+  status    EpicStatus @default(PLANNED)
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id])
+  stories   Story[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum EpicStatus {
+  PLANNED
+  ACTIVE
+  DONE
+}
+
+model Story {
+  id       String   @id @default(uuid())
+  title    String
+  epicId   String
+  epic     Epic     @relation(fields: [epicId], references: [id])
+  position Int
 } 
