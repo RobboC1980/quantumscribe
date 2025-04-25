@@ -6,6 +6,7 @@ import 'antd/dist/reset.css';
 import Dashboard from './routes/Dashboard';
 import Login from './routes/Login';
 import Projects from './routes/Projects';
+import Kanban from './routes/Kanban';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
@@ -14,6 +15,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <Route path="/login" element={<Login />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/projects" element={<Projects />} />
+        <Route path="/projects/:projectId/board" element={<Kanban />} />
         <Route path="/*" element={<Dashboard />} />
       </Routes>
     </BrowserRouter>
