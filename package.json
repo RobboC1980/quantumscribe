@@ -3,27 +3,17 @@
   "private": true,
   "version": "0.1.0",
   "packageManager": "pnpm@8.15.1",
-  "workspaces": ["backend", "frontend"],
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
   "scripts": {
-    // Install deps for all workspaces
     "bootstrap": "pnpm install",
-
-    // Start both backend & frontend in dev mode (each must have its own "dev" script)
     "dev": "pnpm --parallel run dev",
-
-    // For production start (e.g. Express server + static front)
     "start": "pnpm --parallel run start",
-
-    // Lint across all workspaces
     "lint": "pnpm --recursive run lint",
-
-    // Format code across all workspaces
     "format": "pnpm --recursive run format",
-
-    // Sync lockfiles, generate Prisma client, then build both workspaces
     "build": "pnpm install && pnpx prisma generate --schema=backend/prisma/schema.prisma && pnpm --parallel run build",
-
-    // Explicit Prisma generator entry for CI reuse
     "prisma:generate": "pnpx prisma generate --schema=backend/prisma/schema.prisma"
   },
   "devDependencies": {
