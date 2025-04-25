@@ -14,11 +14,12 @@ export async function register(email: string, password: string) {
 
   const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
   
-  // Create user with correct field name mapping
+  // Create user - use password field as TypeScript expects it
+  // But in our database it's mapped to password_hash via Prisma schema
   const user = await prisma.user.create({ 
     data: { 
       email, 
-      passwordHash: hashedPassword, // This matches the field in our Prisma schema
+      password: hashedPassword // TypeScript expects 'password', Prisma maps to 'password_hash'
     } 
   });
   
@@ -29,8 +30,8 @@ export async function login(email: string, password: string) {
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user) throw new Error('Invalid credentials');
   
-  // Compare with the passwordHash field from the schema
-  const ok = await bcrypt.compare(password, user.passwordHash);
+  // TypeScript expects 'password', but in the database it's stored as 'password_hash'
+  const ok = await bcrypt.compare(password, user.password);
   if (!ok) throw new Error('Invalid credentials');
   
   return sign(user.id);

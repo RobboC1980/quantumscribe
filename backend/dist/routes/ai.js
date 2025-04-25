@@ -1,32 +1,41 @@
 import { Router } from 'express';
-import { requireAuth } from '../middleware/auth.middleware.js';
-import { stream } from '../services/ai.service.js';
-const r = Router();
-r.post('/completion', requireAuth, async (req, res) => {
-    const { provider = 'openai', prompt } = req.body;
-    // Configure Server-Sent Events (SSE) headers
-    res.writeHead(200, {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        Connection: 'keep-alive'
-    });
-    // Kick-start the stream so that the client receives the headers immediately
-    res.write('\n');
+import { authenticate } from '../middleware/auth.middleware.js';
+import { askAI } from '../services/ai.service.js';
+const router = Router();
+// AI completion endpoint
+router.post('/complete', authenticate, async (req, res) => {
     try {
-        for await (const chunk of stream(provider, [{ role: 'user', content: prompt }])) {
-            if (chunk) {
-                // Ensure each message is on its own line followed by a blank line as per SSE spec
-                res.write(`data: ${chunk.replace(/\n/g, ' ')}\n\n`);
-            }
+        const { prompt } = req.body;
+        if (!prompt) {
+            return res.status(400).json({ error: 'Prompt is required' });
         }
-        res.write('data: [END]\n\n');
+        const completion = await askAI(prompt);
+        res.json({ completion });
     }
-    catch (err) {
-        console.error('AI stream error:', err);
-        res.write('data: [ERROR]\n\n');
-    }
-    finally {
-        res.end();
+    catch (error) {
+        console.error('AI error:', error);
+        res.status(500).json({ error: 'AI service is currently unavailable' });
     }
 });
-export default r;
+// AI stream endpoint (for SSE - Server-Sent Events)
+router.post('/stream', authenticate, async (req, res) => {
+    try {
+        const { prompt } = req.body;
+        if (!prompt) {
+            return res.status(400).json({ error: 'Prompt is required' });
+        }
+        // Set headers for SSE
+        res.setHeader('Content-Type', 'text/event-stream');
+        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader('Connection', 'keep-alive');
+        // Stream logic would go here
+        // This is a simplified example
+        res.write(`data: ${JSON.stringify({ text: "AI streaming not implemented yet" })}\n\n`);
+        res.end();
+    }
+    catch (error) {
+        console.error('AI streaming error:', error);
+        res.status(500).json({ error: 'AI streaming service is currently unavailable' });
+    }
+});
+export default router;

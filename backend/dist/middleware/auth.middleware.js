@@ -1,14 +1,26 @@
 import { verify } from '../services/auth.service.js';
-export function requireAuth(req, res, next) {
-    const header = req.headers.authorization;
-    if (!header?.startsWith('Bearer '))
-        return res.status(401).json({ error: 'Unauthenticated' });
+/**
+ * Authentication middleware that validates JWT tokens from the Authorization header
+ */
+export function authenticate(req, res, next) {
+    // Get token from Authorization header
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'Authentication required' });
+    }
+    const token = authHeader.split(' ')[1];
+    if (!token) {
+        return res.status(401).json({ error: 'Authentication token is required' });
+    }
     try {
-        const payload = verify(header.split(' ')[1]);
-        req.userId = payload.sub;
+        // Verify the token and extract user ID
+        const decoded = verify(token);
+        // Attach user to request for later use in route handlers
+        req.user = { id: decoded.sub };
         next();
     }
-    catch {
-        return res.status(401).json({ error: 'Invalid token' });
+    catch (error) {
+        console.error('Auth middleware error:', error);
+        return res.status(401).json({ error: 'Invalid authentication token' });
     }
 }
