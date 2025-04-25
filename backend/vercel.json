@@ -1,17 +1,14 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "src/app.ts",
-      "use": "@vercel/node"
-    }
+  "rewrites": [
+    { "source": "/api/auth/(.*)", "destination": "/api/auth/$1" }
   ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "src/app.ts"
+  "functions": {
+    "api/**/*.js": {
+      "memory": 1024,
+      "maxDuration": 10
     }
-  ],
+  },
   "env": {
     "NODE_ENV": "production"
   }

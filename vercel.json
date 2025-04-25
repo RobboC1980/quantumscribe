@@ -4,20 +4,9 @@
   "outputDirectory": "frontend/dist",
   "installCommand": "pnpm install",
   "framework": "vite",
-  "functions": {
-    "api/**/*.js": {
-      "runtime": "nodejs18.x"
-    }
-  },
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
+  "rewrites": [
+    { "source": "/api/auth/(.*)", "destination": "/backend/api/auth/$1" },
+    { "source": "/(.*)", "destination": "/$1" }
   ],
   "env": {
     "NODE_ENV": "production"
