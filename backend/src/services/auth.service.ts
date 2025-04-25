@@ -1,9 +1,8 @@
-import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { JWT_SECRET } from '../config/env.js';
+import { prisma } from '../config/db.js';
 
-const prisma = new PrismaClient();
 const SALT_ROUNDS = 10;
 
 export async function register(email: string, password: string) {
