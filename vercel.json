@@ -1,0 +1,20 @@
+{
+  "version": 2,
+  "buildCommand": "pnpm install && pnpm run build",
+  "outputDirectory": "frontend/dist",
+  "installCommand": "pnpm install",
+  "framework": "vite",
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  }
+} 

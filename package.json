@@ -10,7 +10,8 @@
     "bootstrap": "npm install && npm run build --workspaces",
     "start": "npm run dev --workspaces",
     "lint": "npm run lint --workspaces",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "build": "pnpm run build --filter backend --filter frontend"
   },
   "devDependencies": {
     "@types/compression": "^1.7.5",
