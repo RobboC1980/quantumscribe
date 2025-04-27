@@ -3,6 +3,8 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import 'antd/dist/reset.css';
 import { QueryProvider } from './lib/query';
+import { AuthProvider } from './context/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
 
 import Dashboard from './routes/Dashboard';
 import Login from './routes/Login';
@@ -14,17 +16,43 @@ import AiAssistant from './routes/AiAssistant';
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <QueryProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/projects" element={<Projects />} />
-          <Route path="/projects/:projectId/board" element={<Kanban />} />
-          <Route path="/billing" element={<Billing />} />
-          <Route path="/ai" element={<AiAssistant />} />
-          <Route path="/*" element={<Dashboard />} />
-        </Routes>
-      </BrowserRouter>
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/dashboard" element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/projects" element={
+              <ProtectedRoute>
+                <Projects />
+              </ProtectedRoute>
+            } />
+            <Route path="/projects/:projectId/board" element={
+              <ProtectedRoute>
+                <Kanban />
+              </ProtectedRoute>
+            } />
+            <Route path="/billing" element={
+              <ProtectedRoute>
+                <Billing />
+              </ProtectedRoute>
+            } />
+            <Route path="/ai" element={
+              <ProtectedRoute>
+                <AiAssistant />
+              </ProtectedRoute>
+            } />
+            <Route path="/*" element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
     </QueryProvider>
   </React.StrictMode>
 );

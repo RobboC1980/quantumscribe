@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Form, Input, Button, Card, Tabs, message } from 'antd';
-import { post } from '../lib/api';
+import { Form, Input, Button, Card, Tabs, message, Divider } from 'antd';
+import { GoogleOutlined } from '@ant-design/icons';
+import { signIn, signUp, supabase } from '../lib/supabase';
 
 export default function Login() {
   const [loading, setLoading] = useState(false);
@@ -11,19 +12,12 @@ export default function Login() {
   async function handleLogin(values: { email: string; password: string }) {
     try {
       setLoading(true);
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(values)
-      });
+      const { data, error } = await signIn(values.email, values.password);
       
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.error || 'Login failed');
+      if (error) {
+        throw error;
       }
       
-      localStorage.setItem('token', data.token);
       message.success('Login successful!');
       navigate('/dashboard');
     } catch (error: any) {
@@ -36,24 +30,37 @@ export default function Login() {
   async function handleRegister(values: { email: string; password: string }) {
     try {
       setLoading(true);
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(values)
-      });
+      const { data, error } = await signUp(values.email, values.password);
       
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.error || 'Registration failed');
+      if (error) {
+        throw error;
       }
       
-      localStorage.setItem('token', data.token);
-      message.success('Registration successful!');
-      navigate('/dashboard');
+      message.success('Registration successful! Please check your email for confirmation.');
+      // Stay on login tab for the user to login after confirming their email
+      setActiveTab('login');
     } catch (error: any) {
       message.error(error.message || 'Registration failed. Please try again.');
     } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleGoogleLogin() {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`
+        }
+      });
+      
+      if (error) {
+        throw error;
+      }
+    } catch (error: any) {
+      message.error(error.message || 'Google login failed. Please try again.');
       setLoading(false);
     }
   }
@@ -88,6 +95,17 @@ export default function Login() {
               Login
             </Button>
           </Form.Item>
+          
+          <Divider>Or</Divider>
+          
+          <Button 
+            icon={<GoogleOutlined />} 
+            onClick={handleGoogleLogin} 
+            loading={loading} 
+            block
+          >
+            Continue with Google
+          </Button>
         </Form>
       )
     },
@@ -142,6 +160,17 @@ export default function Login() {
               Register
             </Button>
           </Form.Item>
+          
+          <Divider>Or</Divider>
+          
+          <Button 
+            icon={<GoogleOutlined />} 
+            onClick={handleGoogleLogin} 
+            loading={loading} 
+            block
+          >
+            Continue with Google
+          </Button>
         </Form>
       )
     }

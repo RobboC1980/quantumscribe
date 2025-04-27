@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { login, register } from '../services/auth.service.js';
+import { login, register, refreshSession, signOut } from '../services/auth.service.js';
 
 const router = Router();
 
@@ -22,8 +22,8 @@ router.post('/register', async (req, res) => {
     }
     
     // Attempt to register the user
-    const token = await register(email, password);
-    res.status(201).json({ token });
+    const result = await register(email, password);
+    res.status(201).json(result);
   } catch (e: any) {
     console.error('Registration error:', e.message);
     
@@ -49,8 +49,8 @@ router.post('/login', async (req, res) => {
     }
     
     // Attempt to login
-    const token = await login(email, password);
-    res.json({ token });
+    const result = await login(email, password);
+    res.json(result);
   } catch (e: any) {
     console.error('Login error:', e.message);
     
@@ -58,6 +58,40 @@ router.post('/login', async (req, res) => {
     res.status(401).json({ 
       error: 'Invalid credentials'
     });
+  }
+});
+
+// Session refresh endpoint
+router.post('/refresh', async (req, res) => {
+  try {
+    const { refresh_token } = req.body;
+    
+    if (!refresh_token) {
+      return res.status(400).json({ error: 'Refresh token is required' });
+    }
+    
+    const result = await refreshSession(refresh_token);
+    res.json(result);
+  } catch (e: any) {
+    console.error('Session refresh error:', e.message);
+    res.status(401).json({ error: 'Invalid refresh token' });
+  }
+});
+
+// Logout endpoint
+router.post('/logout', async (req, res) => {
+  try {
+    const { session_id } = req.body;
+    
+    if (!session_id) {
+      return res.status(400).json({ error: 'Session ID is required' });
+    }
+    
+    await signOut(session_id);
+    res.json({ success: true });
+  } catch (e: any) {
+    console.error('Logout error:', e.message);
+    res.status(500).json({ error: 'Failed to logout' });
   }
 });
 

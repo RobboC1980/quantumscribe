@@ -4,10 +4,7 @@ import compression from 'compression';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import morgan from 'morgan';
-import { PrismaClient } from '@prisma/client';
-
-// Initialize Prisma client
-const prisma = new PrismaClient();
+import { supabase } from './utils/supabase.js';
 
 import authRouter from './routes/auth.js';
 import userRouter from './routes/user.js';
@@ -52,35 +49,34 @@ app.use('/api/ai', aiRouter);
 // 404 handler
 app.use((_req, res) => res.status(404).json({ error: 'Not Found' }));
 
-// Initialize the database and start server if not in serverless environment
+// Initialize and start server
 const port = process.env.PORT || 4000;
 
 if (process.env.NODE_ENV !== 'production') {
-  // Initialize the database before starting the server
-  const initDatabase = async () => {
+  // Check Supabase connection before starting the server
+  const checkConnection = async () => {
     try {
-      await prisma.$connect();
-      console.log('Connected to database');
+      const { data, error } = await supabase.from('healthcheck').select('*').limit(1);
+      if (error) throw error;
+      console.log('Connected to Supabase database');
       return true;
     } catch (error) {
-      console.error('Failed to connect to database:', error);
+      console.error('Failed to connect to Supabase database:', error);
       return false;
     }
   };
 
-  initDatabase()
+  checkConnection()
     .then(() => {
       app.listen(port, () => console.log(`🚀 Backend ready on :${port}`));
     })
     .catch(err => {
-      console.error('Failed to initialize database:', err);
+      console.error('Failed to initialize database connection:', err);
       process.exit(1);
     });
 } else {
-  // In production, just connect to the database
-  prisma.$connect()
-    .then(() => console.log('Connected to database in serverless environment'))
-    .catch(err => console.error('Failed to connect to database in serverless environment:', err));
+  // In production (serverless), we don't need to explicitly check the connection
+  app.listen(port, () => console.log(`🚀 Backend ready on :${port}`));
 }
 
 // Export the Express app for serverless functions

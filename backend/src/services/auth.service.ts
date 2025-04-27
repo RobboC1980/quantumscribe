@@ -1,40 +1,88 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { JWT_SECRET } from '../config/env.js';
-import { prisma } from '../config/db.js';
+import { supabase, auth as supabaseAuth } from '../utils/supabase.js';
 
 const SALT_ROUNDS = 10;
 
 export async function register(email: string, password: string) {
-  // Check if user already exists
-  const existingUser = await prisma.user.findUnique({ where: { email } });
-  if (existingUser) {
-    throw new Error('User with this email already exists');
+  // Use Supabase Auth for user registration
+  const { data, error } = await supabaseAuth.signUp(email, password);
+  
+  if (error) {
+    if (error.message.includes('already exists')) {
+      throw new Error('User with this email already exists');
+    }
+    throw new Error(error.message);
   }
-
-  const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
   
-  // Create user - use password field as TypeScript expects it
-  // But in our database it's mapped to password_hash via Prisma schema
-  const user = await prisma.user.create({ 
-    data: { 
-      email, 
-      password: hashedPassword // TypeScript expects 'password', Prisma maps to 'password_hash'
-    } 
-  });
+  if (!data.user) {
+    throw new Error('Failed to create user');
+  }
   
-  return sign(user.id);
+  // Return both the JWT and the Supabase session for frontend usage
+  return {
+    token: sign(data.user.id),
+    session: data.session,
+    user: {
+      id: data.user.id,
+      email: data.user.email
+    }
+  };
 }
 
 export async function login(email: string, password: string) {
-  const user = await prisma.user.findUnique({ where: { email } });
-  if (!user) throw new Error('Invalid credentials');
+  // Use Supabase Auth for login
+  const { data, error } = await supabaseAuth.signIn(email, password);
   
-  // TypeScript expects 'password', but in the database it's stored as 'password_hash'
-  const ok = await bcrypt.compare(password, user.password);
-  if (!ok) throw new Error('Invalid credentials');
+  if (error) {
+    throw new Error('Invalid credentials');
+  }
   
-  return sign(user.id);
+  if (!data.user) {
+    throw new Error('Invalid credentials');
+  }
+  
+  // Return both the JWT and the Supabase session for frontend usage
+  return {
+    token: sign(data.user.id),
+    session: data.session,
+    user: {
+      id: data.user.id,
+      email: data.user.email
+    }
+  };
+}
+
+export async function refreshSession(refreshToken: string) {
+  const { data, error } = await supabase.auth.refreshSession({ refresh_token: refreshToken });
+  
+  if (error) {
+    throw new Error('Failed to refresh session');
+  }
+  
+  if (!data.user || !data.session) {
+    throw new Error('No session to refresh');
+  }
+  
+  return {
+    token: sign(data.user.id),
+    session: data.session,
+    user: {
+      id: data.user.id,
+      email: data.user.email || ''
+    }
+  };
+}
+
+export async function signOut(sessionId: string) {
+  const { error } = await supabase.auth.admin.signOut(sessionId);
+  
+  if (error) {
+    throw new Error('Failed to sign out');
+  }
+  
+  return { success: true };
 }
 
 function sign(userId: string) {

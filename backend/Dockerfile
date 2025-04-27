@@ -4,8 +4,8 @@ WORKDIR /app
 
 # Copy only package files first for cache efficiency
 COPY package*.json ./backend/
-
-# No need to copy root tsconfig.json anymore since backend/tsconfig.json is standalone
+# Copy the root tsconfig.json which is needed for the build
+COPY tsconfig.json ./tsconfig.json
 
 # Change to backend dir and install dependencies
 WORKDIR /app/backend
@@ -15,7 +15,7 @@ RUN npm install
 # Note: We are already in /app/backend, so source is copied relative to here
 COPY . ./
 
-# Build the project (tsc -p tsconfig.json uses ./tsconfig.json which extends ../tsconfig.json)
+# Build the project (tsc -p tsconfig.json uses ./tsconfig.json)
 RUN npm run build
 
 # production image
