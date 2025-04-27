@@ -1,0 +1,8 @@
+.forced-colors-demo {
+  padding: 1rem;
+  background: CanvasText;
+  color: Canvas;
+}
+@media (forced-colors: active) {
+  .forced-colors-demo { outline: 2px solid Highlight; }
+} 

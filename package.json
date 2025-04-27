@@ -14,16 +14,24 @@
     "lint": "pnpm --recursive run lint",
     "format": "pnpm --recursive run format",
     "build": "supabase db push && pnpm --parallel run build",
-    "prisma:generate": "pnpx prisma generate --schema=backend/prisma/schema.prisma"
+    "test": "jest"
   },
   "devDependencies": {
+    "@playwright/test": "^1.52.0",
     "eslint": "^8.40.0",
-    "prettier": "^3.0.0"
+    "jest": "^29.7.0",
+    "prettier": "^3.0.0",
+    "ts-jest": "^29.3.2"
   },
   "engines": {
     "node": ">=18.0.0"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.35.0"
-  }
+  },
+  "browserslist": [
+    "last 2 Chrome versions",
+    "last 2 Firefox versions",
+    "last 2 Safari versions"
+  ]
 }

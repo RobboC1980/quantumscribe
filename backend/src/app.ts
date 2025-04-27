@@ -17,10 +17,7 @@ const app = express();
 
 // Configure CORS for all environments
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://quantumscribe.vercel.app', /\.vercel\.app$/] 
-    : 'http://localhost:3000',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  origin: /^(https:\/\/|http:\/\/localhost:)(\d{1,5}|.*quantumscribe.*)/,
   credentials: true
 }));
 

@@ -4,10 +4,10 @@
   "outputDirectory": "frontend/dist",
   "installCommand": "pnpm install",
   "framework": "vite",
-  "rewrites": [
-    { "source": "/api/test", "destination": "/backend/api/test" },
-    { "source": "/api/auth/(.*)", "destination": "/backend/api/auth/$1" },
-    { "source": "/(.*)", "destination": "/$1" }
+  "routes": [
+    { "src": "/api/(.*)", "dest": "backend/dist/app.js" },
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "dest": "/$1" }
   ],
   "env": {
     "NODE_ENV": "production"
