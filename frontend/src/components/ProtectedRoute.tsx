@@ -1,31 +1,44 @@
-import { ReactNode } from 'react';
-import { Navigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { Spin } from 'antd';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
+import { UserRole } from '../types/auth';
+import LoadingSpinner from './LoadingSpinner';
 
 interface ProtectedRouteProps {
-  children: ReactNode;
+  allowedRoles?: UserRole[];
+  redirectTo?: string;
+  children?: React.ReactNode;
 }
 
-export default function ProtectedRoute({ children }: ProtectedRouteProps) {
+/**
+ * A route component that checks if the user is authenticated and has the required role
+ * before rendering its children or the outlet.
+ */
+const ProtectedRoute = ({ 
+  allowedRoles = [], 
+  redirectTo = '/login',
+  children 
+}: ProtectedRouteProps) => {
   const { user, loading } = useAuth();
+  const location = useLocation();
 
+  // Show loading state while checking authentication
   if (loading) {
-    return (
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        minHeight: '100vh'
-      }}>
-        <Spin size="large" tip="Loading..." />
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
+  // Redirect to login if not authenticated
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to={redirectTo} state={{ from: location }} replace />;
   }
 
-  return <>{children}</>;
-} 
+  // If roles are specified, check if user has required role
+  if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
+    // Redirect to a forbidden page or dashboard
+    return <Navigate to="/forbidden" replace />;
+  }
+
+  // Render children or outlet if authenticated and authorized
+  return children ? <>{children}</> : <Outlet />;
+};
+
+export default ProtectedRoute; 

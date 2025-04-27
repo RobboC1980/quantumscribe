@@ -1,61 +1,123 @@
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import { JWT_SECRET } from '../config/env.js';
-import { supabase, auth as supabaseAuth } from '../utils/supabase.js';
+import { supabaseAdmin } from '../lib/createSupabaseAdmin';
+import { validateEmail, validatePassword } from '../utils/validators';
+import { UserRole } from '../types/auth';
 
-const SALT_ROUNDS = 10;
-
-export async function register(email: string, password: string) {
-  // Use Supabase Auth for user registration
-  const { data, error } = await supabaseAuth.signUp(email, password);
-  
-  if (error) {
-    if (error.message.includes('already exists')) {
-      throw new Error('User with this email already exists');
-    }
-    throw new Error(error.message);
+export async function register(email: string, password: string, role: UserRole = 'reader') {
+  // Validate input
+  if (!email || !password) {
+    throw new Error('Email and password required');
   }
   
+  if (!validateEmail(email)) {
+    throw new Error('Invalid email format');
+  }
+  
+  if (!validatePassword(password)) {
+    throw new Error('Password must be at least 6 characters');
+  }
+
+  // Sign up via Supabase Auth
+  const { data, error } = await supabaseAdmin.auth.signUp({
+    email,
+    password,
+    options: {
+      data: {
+        role: role,
+      }
+    }
+  });
+
+  if (error) {
+    // Supabase returns 400 for invalid/email-in-use, 429 rate-limits, etc.
+    throw new Error(error.message);
+  }
+
   if (!data.user) {
     throw new Error('Failed to create user');
   }
-  
-  // Return both the JWT and the Supabase session for frontend usage
+
+  // Create user record in the users table with the role
+  const { error: userError } = await supabaseAdmin
+    .from('users')
+    .insert({
+      id: data.user.id,
+      email: data.user.email,
+      role: role,
+      created_at: new Date().toISOString()
+    });
+
+  if (userError) {
+    // If creating the user record fails, we should delete the auth user
+    await supabaseAdmin.auth.admin.deleteUser(data.user.id);
+    throw new Error(`Failed to create user profile: ${userError.message}`);
+  }
+
+  // Return user data
   return {
-    token: sign(data.user.id),
-    session: data.session,
     user: {
       id: data.user.id,
-      email: data.user.email
-    }
+      email: data.user.email,
+      role: role,
+    },
   };
 }
 
 export async function login(email: string, password: string) {
-  // Use Supabase Auth for login
-  const { data, error } = await supabaseAuth.signIn(email, password);
-  
+  // Validate input
+  if (!email || !password) {
+    throw new Error('Email and password required');
+  }
+
+  if (!validateEmail(email)) {
+    throw new Error('Invalid email format');
+  }
+
+  // Sign in via Supabase Auth
+  const { data, error } = await supabaseAdmin.auth.signInWithPassword({
+    email,
+    password,
+  });
+
   if (error) {
-    throw new Error('Invalid credentials');
+    // Map Supabase errors to appropriate error messages
+    if (error.message.includes('Invalid login credentials')) {
+      throw Object.assign(new Error('Invalid credentials'), { status: 401 });
+    }
+    
+    if (error.message.includes('rate limit')) {
+      throw Object.assign(new Error('Too many login attempts. Please try again later.'), { status: 429 });
+    }
+
+    // Generic error for other cases
+    throw Object.assign(new Error(error.message), { status: error.status || 400 });
   }
-  
-  if (!data.user) {
-    throw new Error('Invalid credentials');
+
+  // Get the user's role from the database
+  const { data: userData, error: userError } = await supabaseAdmin
+    .from('users')
+    .select('role')
+    .eq('id', data.user.id)
+    .single();
+
+  if (userError) {
+    throw Object.assign(new Error('Failed to fetch user data'), { status: 500 });
   }
-  
-  // Return both the JWT and the Supabase session for frontend usage
+
+  // Return user data and session
   return {
-    token: sign(data.user.id),
     session: data.session,
     user: {
       id: data.user.id,
-      email: data.user.email
-    }
+      email: data.user.email,
+      role: userData.role as UserRole,
+    },
   };
 }
 
 export async function refreshSession(refreshToken: string) {
-  const { data, error } = await supabase.auth.refreshSession({ refresh_token: refreshToken });
+  const { data, error } = await supabaseAdmin.auth.refreshSession({ 
+    refresh_token: refreshToken 
+  });
   
   if (error) {
     throw new Error('Failed to refresh session');
@@ -65,18 +127,29 @@ export async function refreshSession(refreshToken: string) {
     throw new Error('No session to refresh');
   }
   
+  // Get the user's role from the database
+  const { data: userData, error: userError } = await supabaseAdmin
+    .from('users')
+    .select('role')
+    .eq('id', data.user.id)
+    .single();
+
+  if (userError) {
+    throw new Error('Failed to fetch user data');
+  }
+  
   return {
-    token: sign(data.user.id),
     session: data.session,
     user: {
       id: data.user.id,
-      email: data.user.email || ''
+      email: data.user.email || '',
+      role: userData.role as UserRole,
     }
   };
 }
 
 export async function signOut(sessionId: string) {
-  const { error } = await supabase.auth.admin.signOut(sessionId);
+  const { error } = await supabaseAdmin.auth.admin.signOut(sessionId);
   
   if (error) {
     throw new Error('Failed to sign out');
@@ -85,10 +158,65 @@ export async function signOut(sessionId: string) {
   return { success: true };
 }
 
-function sign(userId: string) {
-  return jwt.sign({ sub: userId }, JWT_SECRET, { expiresIn: '7d' });
+export async function resetPasswordForEmail(email: string) {
+  if (!email) {
+    throw new Error('Email is required');
+  }
+  
+  if (!validateEmail(email)) {
+    throw new Error('Invalid email format');
+  }
+  
+  const { error } = await supabaseAdmin.auth.resetPasswordForEmail(email, {
+    redirectTo: `${process.env.FRONTEND_URL}/reset-password`,
+  });
+  
+  if (error) {
+    throw new Error(error.message);
+  }
+  
+  return { success: true };
 }
 
-export function verify(token: string) {
-  return jwt.verify(token, JWT_SECRET) as { sub: string };
+export async function updateUserPassword(userId: string, password: string) {
+  if (!password) {
+    throw new Error('Password is required');
+  }
+  
+  if (!validatePassword(password)) {
+    throw new Error('Password must be at least 6 characters');
+  }
+  
+  const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+    password: password,
+  });
+  
+  if (error) {
+    throw new Error(error.message);
+  }
+  
+  return { success: true };
+}
+
+export async function updateUserRole(userId: string, role: UserRole) {
+  // Update the role in Supabase auth user metadata
+  const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+    user_metadata: { role }
+  });
+  
+  if (authError) {
+    throw new Error(`Failed to update auth user role: ${authError.message}`);
+  }
+  
+  // Update the role in the users table
+  const { error: dbError } = await supabaseAdmin
+    .from('users')
+    .update({ role, updated_at: new Date().toISOString() })
+    .eq('id', userId);
+  
+  if (dbError) {
+    throw new Error(`Failed to update user role in database: ${dbError.message}`);
+  }
+  
+  return { success: true };
 } 

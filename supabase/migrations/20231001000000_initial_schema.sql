@@ -1,8 +1,11 @@
--- Create schema for public data
+-- Create schema if it doesn't exist
 CREATE SCHEMA IF NOT EXISTS public;
 
--- Enable RLS on all tables
-ALTER DATABASE postgres SET default_row_level_security = true;
+-- Enable UUID extension
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- Set timezone to UTC
+ALTER DATABASE postgres SET timezone TO 'UTC';
 
 -- Projects Table
 CREATE TABLE IF NOT EXISTS public.projects (
