@@ -1,0 +1,397 @@
+/* Global Styles */
+:root {
+  --primary-color: #3498db;
+  --primary-dark: #2980b9;
+  --secondary-color: #e74c3c;
+  --secondary-dark: #c0392b;
+  --success-color: #2ecc71;
+  --warning-color: #f39c12;
+  --danger-color: #e74c3c;
+  --light-gray: #f5f5f5;
+  --medium-gray: #e0e0e0;
+  --dark-gray: #888;
+  --text-color: #333;
+  --shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  color: var(--text-color);
+  background-color: var(--light-gray);
+  line-height: 1.6;
+}
+
+a {
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.error {
+  color: var(--danger-color);
+  background-color: rgba(231, 76, 60, 0.1);
+  padding: 10px;
+  border-radius: 4px;
+  margin: 10px 0;
+}
+
+/* Button Styles */
+.button {
+  display: inline-block;
+  padding: 8px 16px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+  text-decoration: none;
+}
+
+.button:hover {
+  background-color: var(--primary-dark);
+  text-decoration: none;
+}
+
+.button.small {
+  padding: 5px 10px;
+  font-size: 12px;
+}
+
+.button.danger {
+  background-color: var(--danger-color);
+}
+
+.button.danger:hover {
+  background-color: var(--secondary-dark);
+}
+
+.button.success {
+  background-color: var(--success-color);
+}
+
+.button.admin {
+  background-color: var(--warning-color);
+}
+
+.button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Auth Forms */
+.auth-container {
+  max-width: 400px;
+  margin: 100px auto;
+  padding: 30px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+}
+
+.auth-container h2 {
+  margin-bottom: 20px;
+  text-align: center;
+  color: var(--primary-color);
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.auth-form input {
+  padding: 10px;
+  border: 1px solid var(--medium-gray);
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+.auth-form button {
+  padding: 12px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.2s;
+}
+
+.auth-form button:hover {
+  background-color: var(--primary-dark);
+}
+
+.auth-container p {
+  margin-top: 20px;
+  text-align: center;
+}
+
+/* Dashboard */
+.dashboard-container {
+  max-width: 1200px;
+  margin: 40px auto;
+  padding: 20px;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.role-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  background-color: var(--primary-color);
+  color: white;
+  border-radius: 4px;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.role-badge.admin {
+  background-color: var(--warning-color);
+}
+
+.role-badge.editor {
+  background-color: var(--success-color);
+}
+
+.role-badge.reader {
+  background-color: var(--primary-color);
+}
+
+.projects-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.project-card {
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: var(--shadow);
+}
+
+.project-card h3 {
+  margin-bottom: 10px;
+  color: var(--primary-color);
+}
+
+.project-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 15px 0;
+  font-size: 14px;
+  color: var(--dark-gray);
+}
+
+.public-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  background-color: var(--success-color);
+  color: white;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.project-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.admin-actions {
+  margin-top: 40px;
+  text-align: center;
+}
+
+/* Admin Panel */
+.admin-container {
+  max-width: 1200px;
+  margin: 40px auto;
+  padding: 20px;
+}
+
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.admin-content h2 {
+  margin-bottom: 20px;
+}
+
+.users-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+  box-shadow: var(--shadow);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.users-table th,
+.users-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid var(--medium-gray);
+}
+
+.users-table th {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.users-table tr:last-child td {
+  border-bottom: none;
+}
+
+.users-table select {
+  padding: 5px;
+  border-radius: 4px;
+  border: 1px solid var(--medium-gray);
+}
+
+/* Project Form */
+.project-container {
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 20px;
+}
+
+.project-container header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.project-form {
+  background-color: white;
+  padding: 25px;
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.form-group input[type="text"],
+.form-group textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--medium-gray);
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+.form-group.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.form-group.checkbox label {
+  margin-bottom: 0;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 30px;
+}
+
+/* Project View */
+.project-view {
+  background-color: white;
+  border-radius: 8px;
+  padding: 25px;
+  box-shadow: var(--shadow);
+}
+
+.project-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.project-description {
+  margin-top: 25px;
+}
+
+.project-description h3 {
+  margin-bottom: 10px;
+  color: var(--primary-color);
+}
+
+/* Forbidden Page */
+.forbidden-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  text-align: center;
+  padding: 0 20px;
+}
+
+.forbidden-title {
+  color: var(--danger-color);
+  font-size: 3rem;
+  margin-bottom: 20px;
+}
+
+.forbidden-message {
+  max-width: 600px;
+  margin-bottom: 30px;
+}
+
+.forbidden-actions {
+  display: flex;
+  gap: 10px;
+} 

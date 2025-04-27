@@ -5,6 +5,8 @@ import 'antd/dist/reset.css';
 import { QueryProvider } from './lib/query';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import App from './App';
+import './styles.css';
 
 import Dashboard from './routes/Dashboard';
 import Login from './routes/Login';
